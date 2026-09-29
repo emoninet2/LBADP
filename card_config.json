@@ -42,10 +42,10 @@
     "chart": {
         "altitude": true,
         "speed": true,
-        "deploymentMarker": true
+        "deploymentMarker": false
     },
     "canvas": {
-        "preset": "portrait",
+        "preset": "instagram_story",
         "width": 1080,
         "height": 1350
     }

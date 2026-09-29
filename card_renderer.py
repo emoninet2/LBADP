@@ -12,6 +12,16 @@ SIZE_PRESETS = {
     'story': (1080, 1920),
     'landscape': (1920, 1080),
     'wide': (1200, 630),
+    'instagram_feed': (1080, 1350),
+    'instagram_square': (1080, 1080),
+    'instagram_story': (1080, 1920),
+    'facebook_feed': (1440, 1800),
+    'facebook_square': (1080, 1080),
+    'facebook_story': (1080, 1920),
+    'x_post': (1600, 900),
+    'x_square': (1080, 1080),
+    'linkedin_feed': (1200, 628),
+    'linkedin_square': (1200, 1200),
 }
 
 
@@ -78,6 +88,8 @@ def wrap_text(text, width, text_font):
 
 
 def render_card(jump, speeds, phases, config, output_path):
+    target_size = canvas_size(config)
+    is_story = target_size[1] / target_size[0] >= 1.65
     rgb = ImageColor.getrgb(config.get('background', '#0f172a'))
     if len(rgb) != 3:
         raise ValueError('Background must be an opaque RGB color')
@@ -165,7 +177,7 @@ def render_card(jump, speeds, phases, config, output_path):
     show_alt=enabled('chart','altitude')
     show_speed=enabled('chart','speed')
     if enabled('sections','chart') and (show_alt or show_speed):
-        fig, ax=plt.subplots(figsize=(8.5,2.4) if canvas_size(config)[0] < canvas_size(config)[1] else (6.0,3.8),facecolor=surface)
+        fig, ax=plt.subplots(figsize=(8.5,5.5) if is_story else ((8.5,2.4) if target_size[0] < target_size[1] else (6.0,3.8)),facecolor=surface)
         ax.set_facecolor(background)
         ax.set_xlabel('Time (sec)',color=muted)
         ax.tick_params(colors=muted)
@@ -218,7 +230,7 @@ def render_card(jump, speeds, phases, config, output_path):
         else:
             entries = values
         if kind == 'chart':
-            return {'height': round(290 * scale + 45 * scale), 'rows': [], 'pad':pad}
+            return {'height': round((570 if is_story else 290) * scale + 45 * scale), 'rows': [], 'pad':pad}
         cells = 3 if width > 800 else 2
         if kind == 'metrics':
             cells = len(entries) if width > 650 else 1
@@ -238,8 +250,8 @@ def render_card(jump, speeds, phases, config, output_path):
 
     # Try comfortable type first. Never crop or silently remove selected fields.
     placement = None
-    for step in range(21):
-        scale = 1 - step * .025
+    for step in range(39 if is_story else 21):
+        scale = (1.45 if is_story else 1) - step * .025
         header_h = round(160 * scale)
         bottom_h = (38 if enabled('sections','footnote') else 0) + (45 if enabled('sections','footer') else 0) + margin
         bottoms = [header_h] * columns
@@ -262,6 +274,19 @@ def render_card(jump, speeds, phases, config, output_path):
             break
     if placement is None:
         raise ValueError('Selected content does not fit this canvas legibly. Choose story or a taller custom size, shorten notes, or disable fields/sections in card_config.json. No image was overwritten.')
+    if is_story and placement:
+        # Use the full vertical canvas rather than leaving all spare space below.
+        spare = max(0, logical_h - bottom_h - max(bottoms))
+        total_height = sum(layout['height'] for *_, layout in placement)
+        expanded = []
+        shift = 0
+        for block, x, y, width, layout in placement:
+            extra = spare * layout['height'] / total_height
+            layout['content_offset'] = extra / 2 if block[0] != 'chart' else 0
+            layout['height'] += extra
+            expanded.append((block, x, y + shift, width, layout))
+            shift += extra
+        placement = expanded
     card = Image.new('RGB',(logical_w,logical_h),background)
     draw = ImageDraw.Draw(card)
     draw.text((margin,22),'JUMP LOG',fill=blue,font=font(round(18*scale),True))
@@ -271,7 +296,7 @@ def render_card(jump, speeds, phases, config, output_path):
         h,pad=layout['height'],layout['pad']
         draw.rounded_rectangle((x,y,x+width,y+h),radius=16,fill=surface,outline=border)
         draw.text((x+pad,y+round(16*scale)),title,fill=color,font=font(max(15,round(19*scale)),True))
-        row_y=y+round(53*scale)
+        row_y=y+round(53*scale)+layout.get('content_offset', 0)
         if kind=='chart':
             # Contain the plot with its original aspect ratio; never stretch it.
             available_w,available_h=round(width-2*pad),round(h-55*scale-pad)
