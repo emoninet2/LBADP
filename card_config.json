@@ -1,0 +1,52 @@
+{
+    "background": "#0f172a",
+    "sections": {
+        "jumpDetails": true,
+        "altitudes": true,
+        "freefall": true,
+        "canopy": true,
+        "metadata": true,
+        "chart": true,
+        "footnote": true,
+        "footer": false
+    },
+    "fields": {
+        "jumpDate": true,
+        "jumpTime": true,
+        "exitAltitude(feet)": true,
+        "depAltitude(feet)": true,
+        "freeFallTime(sec)": true,
+        "avgFreeFallTas(mph)": true,
+        "maxFreeFallTas(mph)": true,
+        "canopyDuration": true,
+        "avgCanopyTas(mph)": true,
+        "maxCanopyTas(mph)": true,
+        "dropzone": true,
+        "country": true,
+        "aircraft": true,
+        "canopy": true,
+        "canopySize": true,
+        "jumpType": true,
+        "rig": true,
+        "exitWeight(kg)": true,
+        "weather": true,
+        "notes": true,
+        "nWay": true,
+        "landingDistanceFromTarget(m)": true,
+        "equipmentNotes": true,
+        "verifierName": false,
+        "verifierCredentialType": false,
+        "verifierCredentialNumber": false,
+        "verifyingSignature": false
+    },
+    "chart": {
+        "altitude": true,
+        "speed": true,
+        "deploymentMarker": true
+    },
+    "canvas": {
+        "preset": "portrait",
+        "width": 1080,
+        "height": 1350
+    }
+}
